@@ -59,7 +59,7 @@ partial def repl : IO Unit := do
     else if line.isEmpty then
       loop gas
 
-    -- 4. TODO
+    -- 4. Parse, Type Check and Evaluate
     else
       match Parser.parseRaw.run line with
       | .error msg => IO.println s!"Parse Error in: {msg}"

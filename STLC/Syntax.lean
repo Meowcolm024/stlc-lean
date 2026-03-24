@@ -1,5 +1,10 @@
 namespace Syntax
 
+/-
+Please refer to:
+https://plfa.github.io/DeBruijn/
+ -/
+
 inductive Ty : Type where
 | base : Ty
 | arr : Ty → Ty → Ty
@@ -48,22 +53,22 @@ def ext {Γ Δ} (ρ : Ren Γ Δ) : ∀ {A}, Ren (Γ ,- A) (Δ ,- A)
 
 def ren {Γ Δ A} (ρ : Ren Γ Δ) (M : Γ ⊢ A) : Δ ⊢ A :=
   match M with
-  | # x => # ρ x
+  | # x   => # ρ x
   | M • N => ren ρ M • ren ρ N
-  | ƛ M => ƛ ren (ext ρ) M
+  | ƛ M   => ƛ ren (ext ρ) M
 
 def exts {Γ Δ} (σ : Sub Γ Δ) : ∀ {A}, Sub (Γ ,- A) (Δ ,- A)
-  | _, _, .here => # .here
+  | _, _, .here    => # .here
   | _, _, .there x => ren .there (σ x)
 
 def sub {Γ Δ A} (σ : Sub Γ Δ) (M : Γ ⊢ A) : Δ ⊢ A :=
   match M with
-  | # x => σ x
+  | # x   => σ x
   | M • N => sub σ M • sub σ N
-  | ƛ M => ƛ sub (exts σ) M
+  | ƛ M   => ƛ sub (exts σ) M
 
 def sub_zero {Γ A} (M : Γ ⊢ A) : Sub (Γ ,- A) Γ
-  | _, .here => M
+  | _, .here    => M
   | _, .there x => # x
 
 notation M "[" N "]" => sub (sub_zero N) M
@@ -76,7 +81,7 @@ inductive Raw : Type where
 deriving instance Repr, Inhabited, DecidableEq for Raw
 
 private def Ty.pretty : Ty -> String
-  | ⊤ => "⊤"
+  | ⊤     => "⊤"
   | ⊤ ⇒ B => s!"⊤ -> {Ty.pretty B}"
   | A ⇒ B => s!"({Ty.pretty A}) -> {Ty.pretty B}"
 
@@ -84,23 +89,23 @@ instance : ToString Ty where
   toString t := Ty.pretty t
 
 private def Lookup.pretty : {Γ : Ctx} -> {A : Ty} -> Lookup Γ A -> Nat
-  | _, _, .here => 0
-  | _, _, .there i => Lookup.pretty i + 1
+  | _, _, .here    => 0
+  | _, _, .there x => Lookup.pretty x + 1
 
 instance {Γ A} : ToString (Lookup Γ A) where
   toString i := s!"{Lookup.pretty i}"
 
 private def Tm.pretty : {Γ : Ctx} -> {A : Ty} -> Tm Γ A -> String
-  | _, _, .var i => s!"x{i}"
+  | _, _, .var i   => s!"x{i}"
   | _, _, .app f a => s!"({f.pretty} {a.pretty})"
-  | _, _, .abs b => s!"(λ. {b.pretty})"
+  | _, _, .abs b   => s!"(λ. {b.pretty})"
 
 instance {Γ A} : ToString (Γ ⊢ A) where
   toString t := t.pretty
 
 private def Raw.pretty : Raw -> String
-  | .var s => s
-  | .app f a => s!"({f.pretty} {a.pretty})"
+  | .var s      => s
+  | .app f a    => s!"({f.pretty} {a.pretty})"
   | .abs s ty b => s!"(λ({s} : {repr ty}). {b.pretty})"
 
 instance : ToString Raw where

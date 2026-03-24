@@ -3,6 +3,11 @@ open Syntax
 
 namespace TypeCheck
 
+/-
+Please refer to:
+https://agda.readthedocs.io/en/stable/language/syntactic-sugar.html
+ -/
+
 abbrev TC (A : Type) : Type := Except String A
 
 def typeError {A} (msg : String) : TC A := .error msg
@@ -22,7 +27,7 @@ deriving instance Repr for WellScoped
 
 def lookup (ctx : Context) (x : String) : TC (WellScoped ctx) :=
   match ctx with
-  | [] => typeError s!"unbounded variable {x}"
+  | []              => typeError s!"unbounded variable {x}"
   | (x', A) :: ctx' =>
     if x' == x
       then return WellScoped.mk A .here
@@ -30,6 +35,12 @@ def lookup (ctx : Context) (x : String) : TC (WellScoped ctx) :=
         let WellScoped.mk A ix <- lookup ctx' x
         return WellScoped.mk A (.there ix)
 
+/-
+WellTyped is actually not strong enough as we didn't
+prove that the elaborated term is the same as the raw term.
+This requires an erasure process, but also need to restore
+the names, which can be challenging (sort of).
+ -/
 structure WellTyped (ctx : Context) : Type where
   mk ::
   ty : Ty

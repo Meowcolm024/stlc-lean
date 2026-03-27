@@ -13,10 +13,10 @@ def process (g : Nat) (raw : Raw) : IO Unit :=
     IO.println (List.replicate 40 '-').asString
 
     -- Weak reduction section
-    IO.println s!"\x1b[1;32mWeak reduction (gas: {g}):\x1b[0m"
+    IO.println s!"\x1b[1;32mWeak Reduction (gas: {g}):\x1b[0m"
     let .mk N trace fin := Semantic.eval g M
     IO.println s!"  {M} —→* {N}"
-    IO.println s!"\x1b[1;32mTrace\x1b[0m:\n{trace}"
+    IO.println s!"\x1b[1;32mReduction Trace:\x1b[0m\n{trace}"
     match fin with
     | none => IO.println "\x1b[31m[out of gas]\x1b[0m"
     | some _ => IO.println "\x1b[1;32m[finished]\x1b[0m"
@@ -52,7 +52,7 @@ partial def repl : IO Unit := do
           IO.println s!"Gas updated to {n}"
           loop n
       | none =>
-          IO.println "Error: Invalid gas value."
+          IO.println "\x1b[31m[Error]\x1b[0m Invalid gas value."
           loop gas
 
     -- 3. Handle Empty Input
@@ -62,7 +62,7 @@ partial def repl : IO Unit := do
     -- 4. Parse, Type Check and Evaluate
     else
       match Parser.parseRaw.run line with
-      | .error msg => IO.println s!"Parse Error in: {msg}"
+      | .error msg => IO.println s!"\x1b[31m[Parse Error]\x1b[0m {msg}"
       | .ok raw    => process gas raw
       loop gas
 

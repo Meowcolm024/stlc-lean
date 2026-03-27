@@ -41,11 +41,6 @@ inductive Multi : ∀ {Γ A}, (Γ ⊢ A) -> (Γ ⊢ A) -> Type where
 
 notation M " —→* " N => Multi M N
 
-def Multi.len {Γ A} {M N : Γ ⊢ A} (mst : Multi M N) : Nat :=
-  match mst with
-  | .done _       => 0
-  | .step _ _ mst => mst.len + 1
-
 structure Eval {A} (M : ∅ ⊢ A) : Type where
   mk ::
   N     : ∅ ⊢ A
@@ -53,7 +48,7 @@ structure Eval {A} (M : ∅ ⊢ A) : Type where
   fin   : Option (Value N)
 
 def eval {A} : (g : Nat) -> (M : ∅ ⊢ A) -> Eval M
-| 0, M     => .mk M (.done M) none
+| 0    , M => .mk M (.done M) none
 | g + 1, M => match progress M with
   | .done VM          => .mk M (.done M) (some VM)
   | .step (N := N) st => match eval g N with
@@ -61,7 +56,7 @@ def eval {A} : (g : Nat) -> (M : ∅ ⊢ A) -> Eval M
 
 private def Multi.pretty {Γ A} {M N : Γ ⊢ A} (st : M —→* N) : String :=
   match st with
-  | .done _    => s!"  —→ {M}\n  ∎"
+  | .done _       => s!"  —→ {M}\n  ∎"
   | .step L LM MN => s!"  —→ {L}\n{Multi.pretty MN}"
 
 instance {Γ A} {M N : Γ ⊢ A} : ToString (Multi M N) where

@@ -82,23 +82,23 @@ deriving instance Repr, Inhabited, DecidableEq for Raw
 
 private def Ty.pretty : Ty -> String
   | ⊤     => "⊤"
-  | ⊤ ⇒ B => s!"⊤ -> {Ty.pretty B}"
-  | A ⇒ B => s!"({Ty.pretty A}) -> {Ty.pretty B}"
+  | ⊤ ⇒ B => s!"⊤ ⇒ {Ty.pretty B}"
+  | A ⇒ B => s!"({Ty.pretty A}) ⇒ {Ty.pretty B}"
 
 instance : ToString Ty where
   toString t := Ty.pretty t
 
-private def Lookup.pretty : {Γ : Ctx} -> {A : Ty} -> Lookup Γ A -> Nat
-  | _, _, .here    => 0
-  | _, _, .there x => Lookup.pretty x + 1
+private def Lookup.pretty {Γ : Ctx} {A : Ty} : Lookup Γ A -> Nat
+  | .here    => 0
+  | .there x => Lookup.pretty x + 1
 
 instance {Γ A} : ToString (Lookup Γ A) where
   toString i := s!"{Lookup.pretty i}"
 
-private def Tm.pretty : {Γ : Ctx} -> {A : Ty} -> Tm Γ A -> String
-  | _, _, .var i   => s!"x{i}"
-  | _, _, .app f a => s!"({f.pretty} {a.pretty})"
-  | _, _, .abs b   => s!"(λ. {b.pretty})"
+private def Tm.pretty {Γ : Ctx}  {A : Ty} : Tm Γ A -> String
+  | .var i   => s!"x{i}"
+  | .app f a => s!"({f.pretty} {a.pretty})"
+  | .abs b   => s!"(λ. {b.pretty})"
 
 instance {Γ A} : ToString (Γ ⊢ A) where
   toString t := t.pretty

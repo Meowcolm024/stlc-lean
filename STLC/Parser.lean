@@ -22,7 +22,6 @@ where
 
 partial def parseRaw : Parser Raw :=
   parseAbs <|> parseApp
-
 where
   -- Parsers for names (variables)
   parseName : Parser String := do

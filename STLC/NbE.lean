@@ -36,12 +36,12 @@ end
 
 def Sem : Ctx -> Ty -> Type
   | Γ, ⊤     => Normal Γ ⊤
-  | Γ, A ⇒ B => Neutral Γ  (A ⇒ B) ⊕ (∀ {Δ}, Ren Γ Δ -> Sem Δ A -> Sem Δ B)
+  | Γ, A ⇒ B => Neutral Γ (A ⇒ B) ⊕ (∀ {Δ}, Ren Γ Δ -> Sem Δ A -> Sem Δ B)
 
 notation:40 Γ " ⊨ " A => Sem Γ A
 
 def reflect {Γ} : {A : Ty} -> (M : Neutral Γ A) -> Γ ⊨ A
-  | ⊤, M    => .ne M
+  | ⊤    , M => .ne M
   | _ ⇒ _, M => .inl M
 
 def reify {Γ} : {A : Ty} -> (x : Γ ⊨ A) -> Normal Γ A
@@ -49,18 +49,19 @@ def reify {Γ} : {A : Ty} -> (x : Γ ⊨ A) -> Normal Γ A
   | _ ⇒ _, .inl x => .ne x
   | _ ⇒ _, .inr k => ƛ reify (k .there (reflect (# .here)))
 
-def ren_sem  {Γ Δ} : {A : Ty} -> (ρ : Ren Γ Δ) -> (x : Γ ⊨ A) -> Δ ⊨ A
-  | ⊤    , ρ, x      => ren_nf ρ x
-  | _ ⇒ _, ρ, .inl x => .inl (ren_ne ρ x)
-  | _ ⇒ _, ρ, .inr k => .inr (λ ρ' => k (ρ' ∘ ρ))
+def ren_sem  {Γ Δ} (ρ : Ren Γ Δ) : {A : Ty}  -> (x : Γ ⊨ A) -> Δ ⊨ A
+  | ⊤    , x      => ren_nf ρ x
+  | _ ⇒ _, .inl x => .inl (ren_ne ρ x)
+  | _ ⇒ _, .inr k => .inr (λ ρ' => k (ρ' ∘ ρ))
 
 abbrev Env (Γ Δ : Ctx) : Type := ∀ {A}, Γ ∋ A -> Δ ⊨ A
 
-def ext_env {Γ Δ Θ A} : (N : Θ ⊨ A) -> (ρ : Ren Δ Θ) -> (η : Env Γ Δ) -> Env (Γ ,- A) Θ
-  | N, _, _, _, .here    => N
-  | _, ρ, η, _, .there x => ren_sem ρ (η x)
+def ext_env {Γ Δ Θ A} (N : Θ ⊨ A)  (ρ : Ren Δ Θ) (η : Env Γ Δ) : Env (Γ ,- A) Θ
+  | _, .here    => N
+  | _, .there x => ren_sem ρ (η x)
 
 -- strong normalization
+-- we didn't prove the correctness of our nbe though
 def eval {Γ Δ A} (η : Env Γ Δ) (M : Γ ⊢ A) : Δ ⊨ A :=
   match M with
   | # x => η x

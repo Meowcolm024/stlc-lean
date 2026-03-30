@@ -49,16 +49,16 @@ def reify {Γ} : {A : Ty} -> (x : Γ ⊨ A) -> Normal Γ A
   | _ ⇒ _, .inl x => .ne x
   | _ ⇒ _, .inr k => ƛ reify (k .there (reflect (# .here)))
 
-def ren_sem  {Γ Δ} (ρ : Ren Γ Δ) : {A : Ty}  -> (x : Γ ⊨ A) -> Δ ⊨ A
+def ren_sem  {Γ Δ} (ρ : Ren Γ Δ) : {A : Ty} -> (x : Γ ⊨ A) -> Δ ⊨ A
   | ⊤    , x      => ren_nf ρ x
   | _ ⇒ _, .inl x => .inl (ren_ne ρ x)
   | _ ⇒ _, .inr k => .inr (λ ρ' => k (ρ' ∘ ρ))
 
 abbrev Env (Γ Δ : Ctx) : Type := ∀ {A}, Γ ∋ A -> Δ ⊨ A
 
-def ext_env {Γ Δ Θ A} (N : Θ ⊨ A)  (ρ : Ren Δ Θ) (η : Env Γ Δ) : Env (Γ ,- A) Θ
+def exte {Γ Δ A} (N : Δ ⊨ A) (η : Env Γ Δ) : Env (Γ ,- A) Δ
   | _, .here    => N
-  | _, .there x => ren_sem ρ (η x)
+  | _, .there x => η x
 
 -- strong normalization
 -- we didn't prove the correctness of our nbe though
@@ -68,7 +68,7 @@ def eval {Γ Δ A} (η : Env Γ Δ) (M : Γ ⊢ A) : Δ ⊨ A :=
   | M • N => match eval η M with
     | .inl x => reflect (x • reify (eval η N))
     | .inr k => k id (eval η N)
-  | ƛ M => .inr (λ ρ N => eval (ext_env N ρ η) M)
+  | ƛ M => .inr (λ ρ N => eval (exte N (ren_sem ρ ∘ η)) M)
 
 mutual
   def extr_nf {Γ A} (M : Normal Γ A) : Γ ⊢ A :=

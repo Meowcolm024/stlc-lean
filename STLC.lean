@@ -5,4 +5,5 @@ import STLC.Parser
 import STLC.Syntax
 import STLC.TypeCheck
 import STLC.Semantic
+import STLC.Norm
 import STLC.NbE

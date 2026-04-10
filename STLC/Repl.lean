@@ -24,7 +24,7 @@ def process (raw : Raw) : IO Unit :=
 
     -- Normalization section
     IO.println s!"\x1b[1;34mStrong Normalization (NbE):\x1b[0m"
-    IO.println s!"  {M} —→* {NbE.norm M}"
+    IO.println s!"  {M} ⇓ {NbE.norm M}"
     IO.println (List.replicate 40 '-').asString
 
 partial def repl : IO Unit := do

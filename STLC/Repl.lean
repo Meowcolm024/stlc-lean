@@ -1,7 +1,6 @@
 import STLC.Parser
 import STLC.Syntax
 import STLC.TypeCheck
-import STLC.Semantic
 import STLC.Norm
 import STLC.NbE
 
@@ -18,7 +17,6 @@ def process (raw : Raw) : IO Unit :=
     let .mk N trace _ := Norm.halts M
     IO.println s!"  {M} —→* {N}"
     IO.println s!"\x1b[1;32mReduction Trace:\x1b[0m\n{trace}"
-    IO.println "\x1b[1;32m[finished]\x1b[0m"
 
     IO.println (List.replicate 40 '-').asString
 

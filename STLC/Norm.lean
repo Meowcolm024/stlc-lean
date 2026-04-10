@@ -50,12 +50,6 @@ def multi_norm_rev {A} {M N : ∅ ⊢ A} : (M —→* N) → Norm N → Norm M
   | .done _      , nm => nm
   | .step _ st mt, nm => step_norm_rev st (multi_norm_rev mt nm)
 
-def cons {Γ Δ A} (M : Δ ⊢ A) (σ : Sub Γ Δ) : Sub (Γ ,- A) Δ
-  | _, .here    => M
-  | _, .there x => σ x
-
-def ids {Γ} : Sub Γ Γ := λ x => # x
-
 -- boring substitution lemmas, see https://plfa.github.io/Substitution/
 axiom sub_id {Γ A} : ∀ (M : Γ ⊢ A), sub ids M = M
 axiom sub_ext_sub {Γ Δ} {σ : Sub Γ Δ} :
@@ -78,9 +72,9 @@ def norm {Γ A σ} (M : Γ ⊢ A) (G : Close σ) : Norm (sub σ M) :=
         rw [sub_ext_sub M N']
         exact multi_trans (app_r_cong mt') (.step _ (.beta v') (.done _))
       let lem2 := norm (σ := cons N' σ) M
-        (λ | .here => multi_norm mt' nn | .there x' => G x')
+        (λ | .here => multi_norm mt' nn | .there x => G x)
       multi_norm_rev lem1 lem2
-    (Halts.mk _ (.done (sub σ (ƛ M))) (.abs _) , k)
+    (Halts.mk _ (.done _) (.abs _) , k)
 
 def halts {A} (M : ∅ ⊢ A) : Halts M := by
   let nm := norm (σ := ids) M (λ _ => by contradiction)

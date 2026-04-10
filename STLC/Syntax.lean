@@ -67,9 +67,13 @@ def sub {Γ Δ A} (σ : Sub Γ Δ) (M : Γ ⊢ A) : Δ ⊢ A :=
   | M • N => sub σ M • sub σ N
   | ƛ M   => ƛ sub (exts σ) M
 
-def sub_zero {Γ A} (M : Γ ⊢ A) : Sub (Γ ,- A) Γ
+def cons {Γ Δ A} (M : Δ ⊢ A) (σ : Sub Γ Δ) : Sub (Γ ,- A) Δ
   | _, .here    => M
-  | _, .there x => # x
+  | _, .there x => σ x
+
+def ids {Γ} : Sub Γ Γ := λ x => # x
+
+def sub_zero {Γ A} (M : Γ ⊢ A) : Sub (Γ ,- A) Γ := cons M ids
 
 notation M "[" N "]" => sub (sub_zero N) M
 

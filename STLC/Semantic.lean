@@ -16,12 +16,26 @@ deriving instance Repr for Value
 -- weak small step
 inductive Step : ∀ {Γ A}, (Γ ⊢ A) -> (Γ ⊢ A) -> Type where
 | app_l : ∀ {Γ A B} {M M' : Γ ⊢ A ⇒ B} {N : Γ ⊢ A}, Step M M' -> Step (M • N) (M' • N)
-| app_r : ∀ {Γ A B} {M : Γ ,- A ⊢ B} {N N' : Γ ⊢ A}, Step N N' -> Step ((ƛ M) • N) ((ƛ M) • N)
+| app_r : ∀ {Γ A B} {M : Γ ,- A ⊢ B} {N N' : Γ ⊢ A}, Step N N' -> Step ((ƛ M) • N) ((ƛ M) • N')
 | beta  : ∀ {Γ A B} {M : Γ ,- A ⊢ B} {N : Γ ⊢ A}, Value N → Step ((ƛ M) • N) (M [ N ])
 
 deriving instance Repr for Step
 
 notation M " —→ " N => Step M N
+
+def value_no_step {A} {M : ∅ ⊢ A} : Value M → ∀ {N}, (M —→ N) → Empty
+  | .abs _, N, st => by contradiction
+
+def step_determ {A} {M M₁ M₂ : ∅ ⊢ A} : (M —→ M₁) → (M —→ M₂) → M₁ = M₂
+  | .app_l st1, .app_l st2 => by rw [step_determ st1 st2]
+  | .app_l st1, .app_r st2 => by contradiction
+  | .app_l st1, .beta v2   => by contradiction
+  | .app_r st1, .app_l st2 => by contradiction
+  | .app_r st1, .app_r st2 => by rw [step_determ st1 st2]
+  | .app_r st1, .beta v2   => Empty.elim (value_no_step v2 st1)
+  | .beta v1  , .app_l st2 => by contradiction
+  | .beta v1  , .app_r st2 => Empty.elim (value_no_step v1 st2)
+  | .beta v1  , .beta v2   => by rfl
 
 inductive Progress {Γ A} (M : Γ ⊢ A) : Type where
 | done : Value M -> Progress M
@@ -40,6 +54,16 @@ inductive Multi : ∀ {Γ A}, (Γ ⊢ A) -> (Γ ⊢ A) -> Type where
 | step : ∀ {Γ A} (L : Γ ⊢ A) {M N}, (L —→ M) -> Multi M N -> Multi L N
 
 notation M " —→* " N => Multi M N
+
+deriving instance Repr for Multi
+
+def multi_trans {Γ A} {L M N : Γ ⊢ A} : (L —→* M) → (M —→* N) → (L —→* N)
+  | .done _        , mt2 => mt2
+  | .step _ st1 mt1, mt2 => .step _ st1 (multi_trans mt1 mt2)
+
+def app_r_cong {Γ A B} {M : Γ ,- A ⊢ B} {N N' : Γ ⊢ A} : (N —→* N') → ((ƛ M) • N) —→* ((ƛ M) • N')
+  | .done _       => .done _
+  | .step _ st mt => .step _ (.app_r st) (app_r_cong mt)
 
 structure Eval {A} (M : ∅ ⊢ A) : Type where
   mk ::

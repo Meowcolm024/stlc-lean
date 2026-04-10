@@ -40,16 +40,16 @@ def Sem : Ctx -> Ty -> Type
 
 notation:40 Γ " ⊨ " A => Sem Γ A
 
-def reflect {Γ} : {A : Ty} -> (M : Neutral Γ A) -> Γ ⊨ A
+def reflect {Γ} : ∀ {A}, (M : Neutral Γ A) -> Γ ⊨ A
   | ⊤    , M => .ne M
   | _ ⇒ _, M => .inl M
 
-def reify {Γ} : {A : Ty} -> (x : Γ ⊨ A) -> Normal Γ A
+def reify {Γ} : ∀ {A}, (x : Γ ⊨ A) -> Normal Γ A
   | ⊤    , x      => x
   | _ ⇒ _, .inl x => .ne x
   | _ ⇒ _, .inr k => ƛ reify (k .there (reflect (# .here)))
 
-def ren_sem  {Γ Δ} (ρ : Ren Γ Δ) : {A : Ty} -> (x : Γ ⊨ A) -> Δ ⊨ A
+def ren_sem  {Γ Δ} (ρ : Ren Γ Δ) : ∀ {A}, (x : Γ ⊨ A) -> Δ ⊨ A
   | ⊤    , x      => ren_nf ρ x
   | _ ⇒ _, .inl x => .inl (ren_ne ρ x)
   | _ ⇒ _, .inr k => .inr (λ ρ' => k (ρ' ∘ ρ))
